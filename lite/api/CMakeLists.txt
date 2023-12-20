@@ -193,8 +193,9 @@ if(NOT IOS AND NOT LITE_ON_TINY_PUBLISH)
         DEPS gflags
         CV_DEPS paddle_cv_arm)
 
+    # disable benchmark_bin, it depends on opencv
     # benchmark_bin
-    add_subdirectory(tools/benchmark)
+    # add_subdirectory(tools/benchmark)
 endif()
 
 if(ANDROID AND NOT LITE_ON_TINY_PUBLISH)

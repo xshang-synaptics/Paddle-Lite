@@ -424,7 +424,7 @@ if (LITE_WITH_ARM)
                 add_dependencies(publish_inference_cxx_lib bundle_full_api)
                 add_dependencies(publish_inference_cxx_lib bundle_light_api)
                 add_dependencies(publish_inference_cxx_lib test_model_bin)
-                add_dependencies(publish_inference_cxx_lib benchmark_bin)
+                # add_dependencies(publish_inference_cxx_lib benchmark_bin)
                 if (ARM_TARGET_OS STREQUAL "android")
                     add_dependencies(publish_inference_cxx_lib test_arm_performance)
                 endif()
@@ -434,7 +434,7 @@ if (LITE_WITH_ARM)
                     add_custom_command(TARGET publish_inference_cxx_lib
                           COMMAND cp ${PADDLE_BINARY_DIR}/lite/api/libpaddle_light_api_shared* ${INFER_LITE_PUBLISH_ROOT}/cxx/lib
                           COMMAND cp ${PADDLE_BINARY_DIR}/lite/api/libpaddle_full_api_shared* ${INFER_LITE_PUBLISH_ROOT}/cxx/lib
-                          COMMAND cp "${PADDLE_BINARY_DIR}/lite/api/tools/benchmark/benchmark_bin" "${INFER_LITE_PUBLISH_ROOT}/bin"
+                        #   COMMAND cp "${PADDLE_BINARY_DIR}/lite/api/tools/benchmark/benchmark_bin" "${INFER_LITE_PUBLISH_ROOT}/bin"
                           )
                 elseif(ARM_TARGET_OS STREQUAL "armmacos")
                     add_dependencies(publish_inference_cxx_lib paddle_full_api_shared)
@@ -701,4 +701,38 @@ if(LITE_WITH_NNADAPTER)
       )
     add_dependencies(publish_inference publish_inference_nnadapter_${device_name})
   endforeach()
+
+  if(NNADAPTER_WITH_VERISILICON_TIMVX)
+    add_custom_target(publish_inference_nnadapter_timvx
+      COMMAND mkdir -p "${INFER_LITE_PUBLISH_ROOT}/cxx/lib"
+      COMMAND cp -r "${PADDLE_BINARY_DIR}/lite/backends/nnadapter/nnadapter/src/driver/verisilicon_timvx/*.so*" "${INFER_LITE_PUBLISH_ROOT}/cxx/lib"
+      DEPENDS verisilicon_timvx
+    )
+    add_dependencies(publish_inference publish_inference_nnadapter_timvx)
+  endif()
+
+endif()
+
+if(SYNAP_PADDLELITE_INSTALL)
+    message("begin install ...")
+    set(PADDLELITE_LIB_DIR ${CMAKE_INSTALL_LIBDIR})
+    set(PADDLELITE_INC_DIR ${CMAKE_INSTALL_INCLUDEDIR}/paddlelite)
+
+    file(GLOB PADDLELITE_HEADERS "${PADDLE_SOURCE_DIR}/lite/api/paddle_*.h")
+    list(APPEND PADDLELITE_HEADERS
+      "${PADDLE_BINARY_DIR}/lite/api/paddle_use_kernels.h"
+      "${PADDLE_BINARY_DIR}/lite/api/paddle_use_ops.h"
+    )
+    install(FILES ${PADDLELITE_HEADERS} DESTINATION ${PADDLELITE_INC_DIR})
+    install(FILES "${PADDLE_BINARY_DIR}/lite/api/libpaddle_light_api_shared.so" DESTINATION ${PADDLELITE_LIB_DIR})
+
+    if(LITE_WITH_NNADAPTER)
+      install(FILES "${PADDLE_BINARY_DIR}/lite/backends/nnadapter/nnadapter/src/libnnadapter.so" DESTINATION ${PADDLELITE_LIB_DIR})
+      install(DIRECTORY "${PADDLE_SOURCE_DIR}/lite/backends/nnadapter/nnadapter/include/nnadapter" DESTINATION ${PADDLELITE_INC_DIR})
+
+      if(NNADAPTER_WITH_VERISILICON_TIMVX)
+        install(FILES "${PADDLE_BINARY_DIR}/lite/backends/nnadapter/nnadapter/src/driver/verisilicon_timvx/libverisilicon_timvx.so" DESTINATION ${PADDLELITE_LIB_DIR})
+      endif()
+    endif()
+
 endif()

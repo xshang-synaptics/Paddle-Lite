@@ -18,8 +18,14 @@ endif()
 include(CheckCXXCompilerFlag)
 if(ANDROID)
     include(findar)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -llog -fPIC")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -llog -fPIC")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+
+    if(LITE_WITH_LOG)
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -llog")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -llog")
+    endif()
+
     if(LITE_WITH_ARM82_FP16)
         if(${ANDROID_NDK_MAJOR})
             if(${ANDROID_NDK_MAJOR} GREATER "17")
@@ -68,16 +74,16 @@ if(ANDROID)
     # Don't re-export libgcc symbols
     set(REMOVE_ATOMIC_GCC_SYMBOLS "-Wl,--exclude-libs,libatomic.a -Wl,--exclude-libs,libgcc.a")
     set(CMAKE_SHARED_LINKER_FLAGS "${REMOVE_ATOMIC_GCC_SYMBOLS} ${CMAKE_SHARED_LINKER_FLAGS}")
-    set(CMAKE_MODULE_LINKER_FLAGS "${REMOVE_ATOMIC_GCC_SYMBOLS} ${CMAKE_MODULE_LINKER_FLAGS}")
-    set(CMAKE_EXE_LINKER_FLAGS "${REMOVE_ATOMIC_GCC_SYMBOLS} ${CMAKE_EXE_LINKER_FLAGS}")
+    # set(CMAKE_MODULE_LINKER_FLAGS "${REMOVE_ATOMIC_GCC_SYMBOLS} ${CMAKE_MODULE_LINKER_FLAGS}")
+    # set(CMAKE_EXE_LINKER_FLAGS "${REMOVE_ATOMIC_GCC_SYMBOLS} ${CMAKE_EXE_LINKER_FLAGS}")
 
     # Only the libunwind.a from clang(with libc++) provide C++ exception handling support for 32-bit ARM
     # Refer to https://android.googlesource.com/platform/ndk/+/master/docs/BuildSystemMaintainers.md#Unwinding
     if (ARM_TARGET_LANG STREQUAL "clang" AND ARM_TARGET_ARCH_ABI STREQUAL "armv7" AND ANDROID_STL_TYPE MATCHES "^c\\+\\+_")
         set(REMOVE_UNWIND_SYMBOLS "-Wl,--exclude-libs,libunwind.a")
-        set(CMAKE_SHARED_LINKER_FLAGS "${REMOVE_UNWIND_SYMBOLS} ${CMAKE_SHARED_LINKER_FLAGS}")
-        set(CMAKE_MODULE_LINKER_FLAGS "${REMOVE_UNWIND_SYMBOLS} ${CMAKE_MODULE_LINKER_FLAGS}")
-        set(CMAKE_EXE_LINKER_FLAGS "${REMOVE_UNWIND_SYMBOLS} ${CMAKE_EXE_LINKER_FLAGS}")
+        # set(CMAKE_SHARED_LINKER_FLAGS "${REMOVE_UNWIND_SYMBOLS} ${CMAKE_SHARED_LINKER_FLAGS}")
+        # set(CMAKE_MODULE_LINKER_FLAGS "${REMOVE_UNWIND_SYMBOLS} ${CMAKE_MODULE_LINKER_FLAGS}")
+        # set(CMAKE_EXE_LINKER_FLAGS "${REMOVE_UNWIND_SYMBOLS} ${CMAKE_EXE_LINKER_FLAGS}")
     endif()
 endif()
 if(ARMLINUX)
@@ -150,7 +156,7 @@ if (LITE_ON_TINY_PUBLISH)
     # 1. strip useless symbols from third-party libs
     # exclude-libs is not supported on macOs system
     if(NOT ARMMACOS)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--exclude-libs,ALL")
+    #   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--exclude-libs,ALL")
       check_linker_flag(-Wl,--gc-sections)
     endif()
     # 2. strip rtti lib to reduce lib size

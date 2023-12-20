@@ -15,9 +15,13 @@ cmake_minimum_required(VERSION 3.10)
 
 set(DEVICE_NAME verisilicon_timvx)
 add_definitions(-DDEVICE_NAME=${DEVICE_NAME})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Os -fvisibility=hidden -fvisibility-inlines-hidden -fexceptions -fasynchronous-unwind-tables -funwind-tables -Wl,--allow-shlib-undefined")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Os -fvisibility=hidden -fvisibility-inlines-hidden -fexceptions -fasynchronous-unwind-tables -funwind-tables")
 
-include(dependencies.cmake)
+message("TIMVX_INC:${TIMVX_INC}")
+message("TIMVX_LIB:${TIMVX_LIB}")
+
+include_directories(${TIMVX_INC})
+# include(dependencies.cmake)
 
 include_directories(.)
 aux_source_directory(converter CONVERTERS)
@@ -26,5 +30,6 @@ set(SRCS utility.cc ${OPTIMIZERS} ${CONVERTERS} engine.cc driver.cc)
 set(DEPS ${DEPS} nnadapter)
 
 add_library(${DEVICE_NAME} SHARED ${SRCS})
-target_link_libraries(${DEVICE_NAME} "-Wl,--start-group" ${DEPS} "-Wl,--end-group -Wl,-exclude-libs,ALL -Wl,--gc-sections -Wl,--strip-all")
+target_link_libraries(${DEVICE_NAME} "-Wl,--start-group" ${DEPS} ${TIMVX_LIB} "-Wl,--end-group -Wl,-exclude-libs,ALL -Wl,--gc-sections -Wl,--strip-all")
 set(NNADAPTER_DEVICES ${NNADAPTER_DEVICES} ${DEVICE_NAME} CACHE INTERNAL "")
+
